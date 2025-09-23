@@ -1,7 +1,6 @@
 import { ParametricLogo } from "@/components/ParametricLogo";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Leva, useControls } from "leva";
+import { ConfigDrawer } from "@/components/ConfigDrawer";
+import { Leva, useControls, button } from "leva";
 import { useState, useEffect } from "react";
 
 const Index = () => {
@@ -36,24 +35,6 @@ const Index = () => {
     setSavedConfigs(keys);
   }, []);
 
-  const [controls, setControls] = useControls(() => ({
-    waviness: { value: 0.8, min: 0.1, max: 2, step: 0.1 },
-    staggeredRotation: { value: 0.2, min: 0, max: 1, step: 0.05 },
-    numPetals: { value: 6, min: 3, max: 12, step: 1 },
-    numLayers: { value: 70, min: 50, max: 100, step: 5 },
-    innerRadiusMin: { value: 0.1, min: 0, max: 0.3, step: 0.02 },
-    innerRadiusMax: { value: 0.25, min: 0, max: 0.3, step: 0.02 },
-    angleRange: { value: Math.PI / 3, min: Math.PI / 6, max: Math.PI, step: 0.05 },
-    innerAmplitude: { value: 0.3, min: 0, max: 1, step: 0.1 },
-    strokeWidth: { value: 0.8, min: 0.5, max: 1, step: 0.1 },
-    opacityBase: { value: 0.7, min: 0.1, max: 1, step: 0.05 },
-    opacityVariation: { value: 0.15, min: 0, max: 0.4, step: 0.05 },
-    lineRotationSpread: { value: 0, min: 0, max: 180, step: 5 },
-    animationDuration: { value: 800, min: 200, max: 3000, step: 100 },
-    backgroundColor: { value: '#fafafa' },
-    lineColor: { value: '#0f172a' },
-  }));
-
   const randomize = () => {
     // Randomize shape-changing params less frequently to maintain animation
     const randomizeShape = Math.random() < 0.3; // 30% chance to change numPetals/numLayers
@@ -76,6 +57,25 @@ const Index = () => {
       animationDuration: controls.animationDuration,
     });
   };
+
+  const [controls, setControls] = useControls(() => ({
+    randomize: button(randomize),
+    waviness: { value: 0.8, min: 0.1, max: 2, step: 0.1 },
+    staggeredRotation: { value: 0.2, min: 0, max: 1, step: 0.05 },
+    numPetals: { value: 6, min: 3, max: 12, step: 1 },
+    numLayers: { value: 70, min: 50, max: 100, step: 5 },
+    innerRadiusMin: { value: 0.1, min: 0, max: 0.3, step: 0.02 },
+    innerRadiusMax: { value: 0.25, min: 0, max: 0.3, step: 0.02 },
+    angleRange: { value: Math.PI / 3, min: Math.PI / 6, max: Math.PI, step: 0.05 },
+    innerAmplitude: { value: 0.3, min: 0, max: 1, step: 0.1 },
+    strokeWidth: { value: 0.8, min: 0.5, max: 1, step: 0.1 },
+    opacityBase: { value: 0.7, min: 0.1, max: 1, step: 0.05 },
+    opacityVariation: { value: 0.15, min: 0, max: 0.4, step: 0.05 },
+    lineRotationSpread: { value: 0, min: 0, max: 180, step: 5 },
+    animationDuration: { value: 800, min: 200, max: 3000, step: 100 },
+    backgroundColor: { value: '#fafafa' },
+    lineColor: { value: '#0f172a' },
+  }));
 
   const saveConfig = () => {
     const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
@@ -124,29 +124,41 @@ const Index = () => {
     const logoContainer = document.querySelector('[data-logo-container]') as HTMLElement;
     if (!logoContainer) return;
 
+    const svgElement = logoContainer.querySelector('svg') as SVGElement;
+    if (!svgElement) return;
+
     try {
       const { toPng } = await import('html-to-image');
-      
-      const dataUrl = await toPng(logoContainer, {
+
+      // Create a clean SVG copy for export
+      const svgClone = svgElement.cloneNode(true) as SVGElement;
+      svgClone.style.transform = 'scale(1)';
+      svgClone.setAttribute('width', '400');
+      svgClone.setAttribute('height', '400');
+      svgClone.style.width = '400px';
+      svgClone.style.height = '400px';
+
+      // Create a temporary container for the SVG
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      tempContainer.style.width = '400px';
+      tempContainer.style.height = '400px';
+      tempContainer.style.backgroundColor = controls.backgroundColor;
+      tempContainer.appendChild(svgClone);
+      document.body.appendChild(tempContainer);
+
+      const dataUrl = await toPng(tempContainer, {
         quality: 1.0,
         pixelRatio: 4, // 4x resolution for high quality
         backgroundColor: controls.backgroundColor,
-        width: 400, // Fixed size for consistent export
+        width: 400,
         height: 400,
-        style: {
-          transform: 'scale(1)', // No additional scaling
-          transformOrigin: 'center',
-        },
-        filter: (node) => {
-          // Reset SVG to normal scale for export
-          if (node.tagName === 'svg') {
-            (node as any).style.transform = 'scale(1)'; // Remove the internal scale(3)
-            (node as any).setAttribute('width', '400');
-            (node as any).setAttribute('height', '400');
-          }
-          return true;
-        },
       });
+
+      // Clean up
+      document.body.removeChild(tempContainer);
 
       // Create download link
       const link = document.createElement('a');
@@ -175,8 +187,8 @@ const Index = () => {
    return (
     <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: controls.backgroundColor }}>
       <div className="text-center space-y-8">
-        <div 
-          className="mx-auto cursor-grab active:cursor-grabbing"
+        <div
+          className="mx-auto"
           onWheel={handleWheel}
           style={{ transform: `scale(${logoScale})`, transformOrigin: 'center' }}
           data-logo-container
@@ -184,27 +196,16 @@ const Index = () => {
           <ParametricLogo size={400} className="mx-auto" {...controls} />
         </div>
       </div>
-      <Card className="absolute bottom-4 right-4 p-4 bg-white/90 backdrop-blur">
-        <div className="flex gap-2 mb-4">
-          <Button onClick={randomize}>Randomize</Button>
-          <Button onClick={saveConfig}>Save Config</Button>
-        </div>
-        <div className="flex gap-2 mb-4">
-          <Button onClick={exportAsSVG} variant="outline">Export SVG</Button>
-          <Button onClick={exportAsPNG} variant="outline">Export PNG</Button>
-        </div>
-        <div>
-          <h4 className="text-lg font-semibold mb-2">Saved Configs</h4>
-          <ul className="space-y-1">
-            {savedConfigs.map(name => (
-              <li key={name} className="flex items-center gap-2">
-                <span className="text-sm">{name}</span>
-                <Button size="sm" onClick={() => loadConfig(name)}>Load</Button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Card>
+
+      <ConfigDrawer
+        controls={controls}
+        savedConfigs={savedConfigs}
+        onSaveConfig={saveConfig}
+        onLoadConfig={loadConfig}
+        onExportSVG={exportAsSVG}
+        onExportPNG={exportAsPNG}
+      />
+
       <Leva />
     </div>
   );
