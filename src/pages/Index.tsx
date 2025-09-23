@@ -28,11 +28,13 @@ const Index = () => {
   }));
 
   const randomize = () => {
-    const randomParams = {
+    // Randomize shape-changing params less frequently to maintain animation
+    const randomizeShape = Math.random() < 0.3; // 30% chance to change numPetals/numLayers
+    setControls({
       waviness: Math.random() * 2,
       staggeredRotation: Math.random() * Math.PI * 2,
-      numPetals: Math.floor(Math.random() * 10) + 1,
-      numLayers: Math.floor(Math.random() * 20) + 1,
+      numPetals: randomizeShape ? Math.floor(Math.random() * 10) + 1 : controls.numPetals,
+      numLayers: randomizeShape ? Math.floor(Math.random() * 20) + 1 : controls.numLayers,
       innerRadiusMin: Math.random() * 2,
       innerRadiusMax: Math.random() * 2,
       angleRange: Math.random() * Math.PI + 0.1,
@@ -41,8 +43,7 @@ const Index = () => {
       opacityBase: Math.random(),
       opacityVariation: Math.random() * 0.5,
       lineRotationSpread: Math.random() * 360,
-    };
-    setControls(randomParams);
+    });
   };
 
   const saveConfig = () => {
