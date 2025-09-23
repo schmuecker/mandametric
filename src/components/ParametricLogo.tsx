@@ -84,8 +84,8 @@ export const ParametricLogo: React.FC<ParametricLogoProps> = ({
         const nextAngle = ((i + 1) / 60) * 2 * Math.PI;
         
         // Create inner spiral patterns
-        const r1 = radius * (1 + 0.4 * Math.sin(5 * angle + layer));
-        const r2 = radius * (1 + 0.4 * Math.sin(5 * nextAngle + layer));
+        const r1 = radius * (1 + 0.4 * Math.sin(3 * angle + layer));
+        const r2 = radius * (1 + 0.4 * Math.sin(3 * nextAngle + layer));
         
         const x1 = center + r1 * Math.cos(angle);
         const y1 = center + r1 * Math.sin(angle);
