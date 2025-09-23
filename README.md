@@ -1,4 +1,4 @@
-# Mandametric
+# 💫 Mandametric
 
 A sophisticated parametric logo generator that creates beautiful, animated SVG logos with real-time customization controls.
 
