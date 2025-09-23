@@ -1,6 +1,6 @@
 # 💫 Mandametric
 
-A parametric logo generator that creates beautiful SVG visuals with real-time customization controls.
+A parametric generator that creates beautiful SVG visuals with real-time customization controls.
 
 ![Mandametric Preview](./docs/screenshot.png)
 
