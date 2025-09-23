@@ -60,7 +60,7 @@ export const ConfigDrawer: React.FC<ConfigDrawerProps> = ({
       <DrawerContent className="max-h-[80vh]">
         <div className="max-w-md mx-auto">
           <DrawerHeader>
-            <DrawerTitle>Logo Configuration</DrawerTitle>
+            <DrawerTitle>Configuration</DrawerTitle>
             <DrawerDescription>
               Customize and export your parametric logo
             </DrawerDescription>
@@ -90,7 +90,7 @@ export const ConfigDrawer: React.FC<ConfigDrawerProps> = ({
             {/* Saved Configs */}
             {savedConfigs.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">Saved Configurations</h4>
+                <h4 className="text-sm font-medium pt-4">Saved Configurations</h4>
                 <div className="max-h-40 overflow-y-auto space-y-1">
                   {savedConfigs.map((name) => (
                     <div
@@ -98,7 +98,11 @@ export const ConfigDrawer: React.FC<ConfigDrawerProps> = ({
                       className="flex items-center gap-2 p-2 rounded-md bg-muted/50"
                     >
                       <span className="text-sm flex-1 truncate">{name}</span>
-                      <Button size="sm" variant="ghost" onClick={() => onLoadConfig(name)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onLoadConfig(name)}
+                      >
                         <IterationCw className="w-4 h-4" />
                         <span className="sr-only">Load</span>
                       </Button>
