@@ -9,110 +9,98 @@ export const ParametricLogo: React.FC<ParametricLogoProps> = ({
   size = 400, 
   className = "" 
 }) => {
-  const center = size / 2;
-  const scale = size / 400;
-
-  // Generate the three symmetric heart shapes with flowing lines
-  const generateSymmetricLogo = () => {
-    const lines: string[] = [];
+  // Generate curves for the 5-petal star pattern
+  const generateCurves = () => {
+    const curves: string[] = [];
+    const center = size / 2;
+    const numPetals = 5;
+    const numLayers = 12; // Number of concentric curves per petal
     
-    // Three heart positions with perfect 120° symmetry
-    const heartAngles = [0, 2 * Math.PI / 3, 4 * Math.PI / 3]; // 0°, 120°, 240°
-    const heartDistance = 100 * scale; // Distance from center to each heart
-    
-    // Generate flowing lines that create the heart shapes
-    for (let lineIndex = 0; lineIndex < 30; lineIndex++) {
-      const t = lineIndex / 29; // 0 to 1
+    for (let petal = 0; petal < numPetals; petal++) {
+      const baseAngle = (petal * 2 * Math.PI) / numPetals;
       
-      // Create a line that flows through all three hearts
-      for (let heartIdx = 0; heartIdx < 3; heartIdx++) {
-        const heartAngle = heartAngles[heartIdx];
-        const heartCenterX = center + heartDistance * Math.cos(heartAngle);
-        const heartCenterY = center + heartDistance * Math.sin(heartAngle);
+      for (let layer = 0; layer < numLayers; layer++) {
+        const radiusScale = 0.3 + (layer / numLayers) * 0.6;
+        const maxRadius = (size * 0.35) * radiusScale;
         
-        // Generate heart-shaped curve for this heart
-        const heartPath = generateHeartCurve(heartCenterX, heartCenterY, 40 * scale, t, heartAngle);
-        if (heartPath) {
-          lines.push(heartPath);
+        // Generate the petal curve using parametric equations
+        let pathData = '';
+        const points: { x: number; y: number }[] = [];
+        
+        // Create the curved petal shape
+        for (let t = 0; t <= 1; t += 0.02) {
+          // Use a combination of sinusoidal functions to create the petal shape
+          const angle = baseAngle + (t - 0.5) * (Math.PI / 2.5);
+          
+          // Create the characteristic curved shape
+          const r = maxRadius * Math.sin(Math.PI * t) * (1 + 0.3 * Math.cos(3 * Math.PI * t));
+          
+          const x = center + r * Math.cos(angle);
+          const y = center + r * Math.sin(angle);
+          
+          points.push({ x, y });
+        }
+        
+        // Create smooth path using bezier curves
+        if (points.length > 0) {
+          pathData = `M ${points[0].x} ${points[0].y}`;
+          
+          for (let i = 1; i < points.length; i++) {
+            if (i === 1) {
+              pathData += ` Q ${points[i].x} ${points[i].y}`;
+            } else {
+              // Calculate control points for smooth curves
+              const prevPoint = points[i - 1];
+              const currentPoint = points[i];
+              
+              if (i < points.length - 1) {
+                const nextPoint = points[i + 1];
+                const cp1x = prevPoint.x + (currentPoint.x - prevPoint.x) * 0.3;
+                const cp1y = prevPoint.y + (currentPoint.y - prevPoint.y) * 0.3;
+                const cp2x = currentPoint.x - (nextPoint.x - currentPoint.x) * 0.3;
+                const cp2y = currentPoint.y - (nextPoint.y - currentPoint.y) * 0.3;
+                
+                pathData += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${currentPoint.x} ${currentPoint.y}`;
+              } else {
+                pathData += ` L ${currentPoint.x} ${currentPoint.y}`;
+              }
+            }
+          }
+        }
+        
+        if (pathData) {
+          curves.push(pathData);
         }
       }
     }
     
-    // Generate connecting lines that form the central triangle
-    for (let connectionIndex = 0; connectionIndex < 15; connectionIndex++) {
-      const t = connectionIndex / 14;
+    // Generate the inner connecting curves
+    for (let layer = 1; layer < numLayers - 1; layer++) {
+      const radiusScale = 0.15 + (layer / numLayers) * 0.3;
+      const radius = (size * 0.15) * radiusScale;
       
-      for (let side = 0; side < 3; side++) {
-        const angle1 = heartAngles[side];
-        const angle2 = heartAngles[(side + 1) % 3];
+      for (let i = 0; i < 60; i++) {
+        const angle = (i / 60) * 2 * Math.PI;
+        const nextAngle = ((i + 1) / 60) * 2 * Math.PI;
         
-        const radius = (20 + t * 60) * scale;
+        // Create inner spiral patterns
+        const r1 = radius * (1 + 0.4 * Math.sin(5 * angle + layer));
+        const r2 = radius * (1 + 0.4 * Math.sin(5 * nextAngle + layer));
         
-        const x1 = center + radius * Math.cos(angle1);
-        const y1 = center + radius * Math.sin(angle1);
-        const x2 = center + radius * Math.cos(angle2);
-        const y2 = center + radius * Math.sin(angle2);
+        const x1 = center + r1 * Math.cos(angle);
+        const y1 = center + r1 * Math.sin(angle);
+        const x2 = center + r2 * Math.cos(nextAngle);
+        const y2 = center + r2 * Math.sin(nextAngle);
         
-        // Create curved connection
-        const midAngle = (angle1 + angle2) / 2;
-        const controlRadius = radius * 1.3;
-        const cpX = center + controlRadius * Math.cos(midAngle);
-        const cpY = center + controlRadius * Math.sin(midAngle);
-        
-        lines.push(`M ${x1} ${y1} Q ${cpX} ${cpY} ${x2} ${y2}`);
+        const pathData = `M ${x1} ${y1} Q ${center + (r1 + r2) * 0.6 * Math.cos((angle + nextAngle) / 2)} ${center + (r1 + r2) * 0.6 * Math.sin((angle + nextAngle) / 2)} ${x2} ${y2}`;
+        curves.push(pathData);
       }
     }
     
-    return lines;
-  };
-  
-  // Generate a single heart-shaped curve
-  const generateHeartCurve = (
-    centerX: number, 
-    centerY: number, 
-    size: number, 
-    layer: number,
-    rotation: number
-  ): string => {
-    const points: { x: number; y: number }[] = [];
-    const heartSize = size * (0.3 + layer * 0.7);
-    
-    // Heart parametric equations
-    for (let t = 0; t <= 2 * Math.PI; t += Math.PI / 30) {
-      // Classic heart shape equations
-      const heartX = heartSize * (16 * Math.pow(Math.sin(t), 3));
-      const heartY = heartSize * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-      
-      // Scale down and apply rotation
-      const scaledX = heartX * 0.03;
-      const scaledY = -heartY * 0.03; // Flip Y to point upward
-      
-      // Apply rotation
-      const rotatedX = scaledX * Math.cos(rotation) - scaledY * Math.sin(rotation);
-      const rotatedY = scaledX * Math.sin(rotation) + scaledY * Math.cos(rotation);
-      
-      points.push({
-        x: centerX + rotatedX,
-        y: centerY + rotatedY
-      });
-    }
-    
-    if (points.length < 2) return '';
-    
-    // Create smooth heart path
-    let pathData = `M ${points[0].x} ${points[0].y}`;
-    
-    for (let i = 1; i < points.length; i++) {
-      const current = points[i];
-      pathData += ` L ${current.x} ${current.y}`;
-    }
-    
-    pathData += ' Z'; // Close the heart shape
-    
-    return pathData;
+    return curves;
   };
 
-  const allLines = generateSymmetricLogo();
+  const curves = generateCurves();
 
   return (
     <div className={`inline-block ${className}`}>
@@ -123,16 +111,16 @@ export const ParametricLogo: React.FC<ParametricLogoProps> = ({
         className="overflow-visible"
         style={{ background: 'hsl(var(--logo-bg))' }}
       >
-        {allLines.map((line, index) => (
+        {curves.map((curve, index) => (
           <path
             key={index}
-            d={line}
+            d={curve}
             fill="none"
             stroke="hsl(var(--logo-stroke))"
-            strokeWidth={1.5}
+            strokeWidth={index < curves.length - 300 ? 2 : 1}
             strokeLinecap="round"
             strokeLinejoin="round"
-            opacity={0.8}
+            opacity={0.8 + (index % 3) * 0.1}
           />
         ))}
       </svg>
