@@ -12,7 +12,7 @@ const Index = () => {
     const screenHeight = window.innerHeight;
     // Scale to fit the smaller dimension, with some padding
     const visualLogoSize = 400 * 3; // 1200px
-    const scale = (Math.min(screenWidth, screenHeight) / visualLogoSize) * 0.9;
+    const scale = (Math.min(screenWidth, screenHeight) / visualLogoSize) * 0.7;
     return Math.max(0.1, scale); // Minimum scale
   };
 
@@ -72,23 +72,23 @@ const Index = () => {
 
   const [controls, setControls] = useControls(() => ({
     randomize: button(randomize),
-    waviness: { value: 0.8, min: 0.1, max: 2, step: 0.1 },
-    staggeredRotation: { value: 0.2, min: 0, max: 1, step: 0.05 },
-    numPetals: { value: 6, min: 3, max: 12, step: 1 },
-    numLayers: { value: 70, min: 50, max: 100, step: 5 },
-    innerRadiusMin: { value: 0.1, min: 0, max: 0.3, step: 0.02 },
-    innerRadiusMax: { value: 0.25, min: 0, max: 0.3, step: 0.02 },
+    waviness: { value: Math.random() * 1.9 + 0.1, min: 0.1, max: 2, step: 0.1 },
+    staggeredRotation: { value: Math.random(), min: 0, max: 1, step: 0.05 },
+    numPetals: { value: Math.floor(Math.random() * 9) + 3, min: 3, max: 12, step: 1 },
+    numLayers: { value: Math.floor(Math.random() * 25) + 50, min: 50, max: 100, step: 5 },
+    innerRadiusMin: { value: Math.random() * 0.3, min: 0, max: 0.3, step: 0.02 },
+    innerRadiusMax: { value: Math.random() * 0.3, min: 0, max: 0.3, step: 0.02 },
     angleRange: {
-      value: Math.PI / 3,
+      value: Math.random() * (Math.PI - Math.PI / 6) + Math.PI / 6,
       min: Math.PI / 6,
       max: Math.PI,
       step: 0.05,
     },
-    innerAmplitude: { value: 0.3, min: 0, max: 1, step: 0.1 },
-    strokeWidth: { value: 0.8, min: 0.5, max: 1, step: 0.1 },
-    opacityBase: { value: 0.7, min: 0.1, max: 1, step: 0.05 },
-    opacityVariation: { value: 0.15, min: 0, max: 0.4, step: 0.05 },
-    lineRotationSpread: { value: 0, min: 0, max: 180, step: 5 },
+    innerAmplitude: { value: Math.random(), min: 0, max: 1, step: 0.1 },
+    strokeWidth: { value: Math.random() * 0.5 + 0.5, min: 0.5, max: 1, step: 0.1 },
+    opacityBase: { value: Math.random() * 0.9 + 0.1, min: 0.1, max: 1, step: 0.05 },
+    opacityVariation: { value: Math.random() * 0.4, min: 0, max: 0.4, step: 0.05 },
+    lineRotationSpread: { value: Math.random() * 180, min: 0, max: 180, step: 5 },
     animationDuration: { value: 800, min: 200, max: 3000, step: 100 },
     backgroundColor: { value: "#000000" },
     lineColor: { value: "#4980ff" },
@@ -238,6 +238,10 @@ const Index = () => {
         >
           <ParametricLogo size={400} className="mx-auto" {...controls} />
         </div>
+      </div>
+
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 font-mono text-gray-500 text-center pointer-events-none">
+        Mandametric by <a href="https://github.com/schmuecker" target="_blank" className="underline pointer-events-auto">@schmuecker</a>
       </div>
 
       <ConfigDrawer
