@@ -9,7 +9,7 @@ export const ParametricLogo: React.FC<ParametricLogoProps> = ({
   size = 400, 
   className = "" 
 }) => {
-  // Generate curves for the 3-petal star pattern
+  // Generate curves for the 3-petal pattern
   const generateCurves = () => {
     const curves: string[] = [];
     const center = size / 2;
