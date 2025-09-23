@@ -2,7 +2,7 @@
 
 A sophisticated parametric logo generator that creates beautiful, animated SVG logos with real-time customization controls.
 
-![Mandametric Preview](https://via.placeholder.com/800x400/000000/4980ff?text=Mandametric+Logo+Generator)
+![Mandametric Preview](./docs/screenshot.png)
 
 ## Features
 
