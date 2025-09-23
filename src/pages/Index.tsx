@@ -73,8 +73,8 @@ const Index = () => {
     opacityVariation: { value: 0.15, min: 0, max: 0.4, step: 0.05 },
     lineRotationSpread: { value: 0, min: 0, max: 180, step: 5 },
     animationDuration: { value: 800, min: 200, max: 3000, step: 100 },
-    backgroundColor: { value: '#fafafa' },
-    lineColor: { value: '#0f172a' },
+     backgroundColor: { value: '#000000' },
+     lineColor: { value: '#4980ff' },
   }));
 
   const saveConfig = () => {
@@ -132,29 +132,42 @@ const Index = () => {
 
       // Create a clean SVG copy for export
       const svgClone = svgElement.cloneNode(true) as SVGElement;
-      svgClone.style.transform = 'scale(1)';
-      svgClone.setAttribute('width', '400');
-      svgClone.setAttribute('height', '400');
-      svgClone.style.width = '400px';
-      svgClone.style.height = '400px';
+      svgClone.removeAttribute('style');
+      svgClone.setAttribute('width', '1200');
+      svgClone.setAttribute('height', '1200');
 
-      // Create a temporary container for the SVG
+      // Serialize SVG to string
+      const svgString = new XMLSerializer().serializeToString(svgClone);
+      const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+
+      // Create an img element with the SVG
+      const img = document.createElement('img');
+      img.src = svgDataUrl;
+      img.style.width = '1200px';
+      img.style.height = '1200px';
+
+      // Create a temporary container for the img
       const tempContainer = document.createElement('div');
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-9999px';
       tempContainer.style.top = '-9999px';
-      tempContainer.style.width = '400px';
-      tempContainer.style.height = '400px';
+      tempContainer.style.width = '1200px';
+      tempContainer.style.height = '1200px';
       tempContainer.style.backgroundColor = controls.backgroundColor;
-      tempContainer.appendChild(svgClone);
+      tempContainer.appendChild(img);
       document.body.appendChild(tempContainer);
+
+      // Wait for img to load
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
 
       const dataUrl = await toPng(tempContainer, {
         quality: 1.0,
-        pixelRatio: 4, // 4x resolution for high quality
+        pixelRatio: 1,
         backgroundColor: controls.backgroundColor,
-        width: 400,
-        height: 400,
+        width: 1200,
+        height: 1200,
       });
 
       // Clean up
