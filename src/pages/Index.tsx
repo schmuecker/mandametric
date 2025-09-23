@@ -6,7 +6,27 @@ import { useState, useEffect } from "react";
 
 const Index = () => {
   const [savedConfigs, setSavedConfigs] = useState<string[]>([]);
-  const [logoScale, setLogoScale] = useState(1);
+  
+  // Calculate initial scale to fit screen properly
+  const getInitialScale = () => {
+    const screenWidth = window.innerWidth;
+    // Start at a reasonable default size, not constrained by max
+    return 0.8;
+  };
+  
+  // Calculate max scale for zoom limits
+  const getMaxScale = () => {
+    const screenWidth = window.innerWidth;
+    // Allow zooming to nearly full screen width
+    return Math.max(1, (screenWidth - 100) / (400 * 3)); // Only 100px padding
+  };
+  
+  const [logoScale, setLogoScale] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return getInitialScale();
+    }
+    return 0.8; // Fallback for SSR
+  });
 
   useEffect(() => {
     const keys = Object.keys(localStorage)
@@ -110,11 +130,21 @@ const Index = () => {
       const dataUrl = await toPng(logoContainer, {
         quality: 1.0,
         pixelRatio: 4, // 4x resolution for high quality
-        backgroundColor: '#fafafa',
-        width: 400,
+        backgroundColor: controls.backgroundColor,
+        width: 400, // Fixed size for consistent export
         height: 400,
         style: {
-          transform: 'scale(1)', // Reset any scaling for export
+          transform: 'scale(1)', // No additional scaling
+          transformOrigin: 'center',
+        },
+        filter: (node) => {
+          // Reset SVG to normal scale for export
+          if (node.tagName === 'svg') {
+            (node as any).style.transform = 'scale(1)'; // Remove the internal scale(3)
+            (node as any).setAttribute('width', '400');
+            (node as any).setAttribute('height', '400');
+          }
+          return true;
         },
       });
 
@@ -135,7 +165,11 @@ const Index = () => {
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setLogoScale(prev => Math.max(0.3, Math.min(3, prev + delta)));
+    
+    // Use dynamic max scale calculation
+    const maxScale = getMaxScale();
+    
+    setLogoScale(prev => Math.max(0.2, Math.min(maxScale, prev + delta)));
   };
 
    return (
