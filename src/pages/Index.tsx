@@ -1,14 +1,13 @@
 import { ParametricLogo } from "@/components/ParametricLogo";
+import { CleanSVGLogo } from "@/components/CleanSVGLogo";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const exportAsSVG = () => {
-    const logoContainer = document.getElementById('logo-container');
-    const svgElement = logoContainer?.querySelector('svg');
+    const svgString = (window as any).cleanSVGString;
     
-    if (svgElement) {
-      const svgData = new XMLSerializer().serializeToString(svgElement);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    if (svgString) {
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
       const svgUrl = URL.createObjectURL(svgBlob);
       
       const downloadLink = document.createElement('a');
@@ -23,8 +22,15 @@ const Index = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-logo-bg">
       <div className="text-center space-y-8">
-        <div id="logo-container">
-          <ParametricLogo size={800} className="mx-auto" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-logo-stroke">Original Complex Logo</h3>
+            <ParametricLogo size={400} className="mx-auto" />
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-logo-stroke">Clean SVG Version</h3>
+            <CleanSVGLogo size={400} className="mx-auto" />
+          </div>
         </div>
         <div className="space-y-4">
           <h1 className="text-4xl font-bold text-logo-stroke">Parametric Star Logo</h1>
@@ -33,7 +39,7 @@ const Index = () => {
             onClick={exportAsSVG}
             className="bg-logo-stroke text-logo-bg hover:bg-logo-stroke/90"
           >
-            Export as SVG
+            Export Clean SVG
           </Button>
         </div>
       </div>
