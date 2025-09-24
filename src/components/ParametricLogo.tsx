@@ -91,41 +91,41 @@ export const ParametricLogo: React.FC<ParametricLogoProps> = ({
   // Convert curve data to perfect bezier SVG paths
   const curveToPath = (curve: CurveData): string => {
     if (curve.points.length === 0) return '';
-    
+
     const points = curve.points;
-    
+
     // Handle straight lines
     if (points.length === 2) {
       return `M ${points[0].x.toFixed(3)} ${points[0].y.toFixed(3)} L ${points[1].x.toFixed(3)} ${points[1].y.toFixed(3)}`;
     }
-    
+
     if (points.length === 1) {
       return `M ${points[0].x.toFixed(3)} ${points[0].y.toFixed(3)}`;
     }
-    
+
     // Use sophisticated bezier curve generation for perfect smoothness
-    let pathData = `M ${points[0].x.toFixed(3)} ${points[0].y.toFixed(3)}`;
-    
+    const pathParts = [`M ${points[0].x.toFixed(3)} ${points[0].y.toFixed(3)}`];
+
     if (points.length === 3) {
       // Quadratic bezier for 3 points
       const cp = points[1];
       const end = points[2];
-      pathData += ` Q ${cp.x.toFixed(3)} ${cp.y.toFixed(3)}, ${end.x.toFixed(3)} ${end.y.toFixed(3)}`;
-      return pathData;
+      pathParts.push(` Q ${cp.x.toFixed(3)} ${cp.y.toFixed(3)}, ${end.x.toFixed(3)} ${end.y.toFixed(3)}`);
+      return pathParts.join('');
     }
-    
+
     // For longer curves, use optimized cubic bezier with perfect tangent continuity
     const tension = 0.25; // Reduced tension for cleaner curves
-    
+
     for (let i = 1; i < points.length; i++) {
       const p0 = points[Math.max(0, i - 2)];
       const p1 = points[i - 1];
       const p2 = points[i];
       const p3 = points[Math.min(points.length - 1, i + 1)];
-      
+
       // Enhanced control point calculation for smoother bezier curves
       let cp1x, cp1y, cp2x, cp2y;
-      
+
       if (i === 1) {
         // First segment - smooth start
         cp1x = p1.x + (p2.x - p1.x) * tension;
@@ -144,17 +144,17 @@ export const ParametricLogo: React.FC<ParametricLogoProps> = ({
         const t1y = (p2.y - p0.y) * tension;
         const t2x = (p3.x - p1.x) * tension;
         const t2y = (p3.y - p1.y) * tension;
-        
+
         cp1x = p1.x + t1x;
         cp1y = p1.y + t1y;
         cp2x = p2.x - t2x;
         cp2y = p2.y - t2y;
       }
-      
-      pathData += ` C ${cp1x.toFixed(3)} ${cp1y.toFixed(3)}, ${cp2x.toFixed(3)} ${cp2y.toFixed(3)}, ${p2.x.toFixed(3)} ${p2.y.toFixed(3)}`;
+
+      pathParts.push(` C ${cp1x.toFixed(3)} ${cp1y.toFixed(3)}, ${cp2x.toFixed(3)} ${cp2y.toFixed(3)}, ${p2.x.toFixed(3)} ${p2.y.toFixed(3)}`);
     }
-    
-    return pathData;
+
+    return pathParts.join('');
   };
 
   // Generate sophisticated clean geometry with perfect bezier curves
