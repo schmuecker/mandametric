@@ -2,9 +2,89 @@ import { ParametricLogo } from "@/components/ParametricLogo";
 import { ConfigDrawer } from "@/components/ConfigDrawer";
 import { Leva, useControls, button } from "leva";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+
+// Configuration for all controls
+const controlConfigs = {
+  waviness: { min: 0.1, max: 2, step: 0.1 },
+  staggeredRotation: { min: 0, max: 1, step: 0.05 },
+  numPetals: { min: 3, max: 12, step: 1 },
+  numLayers: { min: 50, max: 100, step: 5 },
+  innerRadiusMin: { min: 0, max: 0.3, step: 0.02 },
+  innerRadiusMax: { min: 0, max: 0.3, step: 0.02 },
+  angleRange: { min: Math.PI / 6, max: Math.PI, step: 0.05 },
+  innerAmplitude: { min: 0, max: 1, step: 0.1 },
+  strokeWidth: { min: 0.5, max: 1, step: 0.1 },
+  opacityBase: { min: 0.1, max: 1, step: 0.05 },
+  opacityVariation: { min: 0, max: 0.4, step: 0.05 },
+  lineRotationSpread: { min: 0, max: 180, step: 5 },
+  animationDuration: { min: 200, max: 3000, step: 100 },
+};
+
+// Helper to round value to step
+const roundToStep = (value: number, step: number) => {
+  return Math.round(value / step) * step;
+};
+
+// Helper to get number of decimals for a step
+const getDecimals = (step: number) => {
+  return Math.max(0, Math.ceil(-Math.log10(step)));
+};
+
+// Helper to format number to avoid floating point precision issues
+const formatNumber = (value: number, step: number) => {
+  const decimals = getDecimals(step);
+  return parseFloat(value.toFixed(decimals));
+};
 
 const Index = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [savedConfigs, setSavedConfigs] = useState<string[]>([]);
+
+  // Keys that should be saved to URL
+  const urlKeys = Object.keys(controlConfigs);
+
+  // Get initial controls from URL or random
+  const getInitialControls = () => {
+    const hasUrlParams = urlKeys.some(key => searchParams.has(key));
+    if (!hasUrlParams) {
+      return {
+        waviness: formatNumber(roundToStep(Math.random() * 1.9 + 0.1, controlConfigs.waviness.step), controlConfigs.waviness.step),
+        staggeredRotation: formatNumber(roundToStep(Math.random(), controlConfigs.staggeredRotation.step), controlConfigs.staggeredRotation.step),
+        numPetals: Math.floor(Math.random() * 9) + 3,
+        numLayers: roundToStep(Math.floor(Math.random() * 25) + 50, controlConfigs.numLayers.step),
+        innerRadiusMin: formatNumber(roundToStep(Math.random() * 0.3, controlConfigs.innerRadiusMin.step), controlConfigs.innerRadiusMin.step),
+        innerRadiusMax: formatNumber(roundToStep(Math.random() * 0.3, controlConfigs.innerRadiusMax.step), controlConfigs.innerRadiusMax.step),
+        angleRange: formatNumber(roundToStep(Math.random() * (Math.PI - Math.PI / 6) + Math.PI / 6, controlConfigs.angleRange.step), controlConfigs.angleRange.step),
+        innerAmplitude: formatNumber(roundToStep(Math.random(), controlConfigs.innerAmplitude.step), controlConfigs.innerAmplitude.step),
+        strokeWidth: formatNumber(roundToStep(Math.random() * 0.5 + 0.5, controlConfigs.strokeWidth.step), controlConfigs.strokeWidth.step),
+        opacityBase: formatNumber(roundToStep(Math.random() * 0.9 + 0.1, controlConfigs.opacityBase.step), controlConfigs.opacityBase.step),
+        opacityVariation: formatNumber(roundToStep(Math.random() * 0.4, controlConfigs.opacityVariation.step), controlConfigs.opacityVariation.step),
+        lineRotationSpread: roundToStep(Math.random() * 180, controlConfigs.lineRotationSpread.step),
+        animationDuration: 800,
+        backgroundColor: "#000000",
+        lineColor: "#4980ff",
+      };
+    }
+
+    return {
+      waviness: parseFloat(searchParams.get('waviness') || '1'),
+      staggeredRotation: parseFloat(searchParams.get('staggeredRotation') || '0.5'),
+      numPetals: parseInt(searchParams.get('numPetals') || '6'),
+      numLayers: parseFloat(searchParams.get('numLayers') || '75'),
+      innerRadiusMin: parseFloat(searchParams.get('innerRadiusMin') || '0.15'),
+      innerRadiusMax: parseFloat(searchParams.get('innerRadiusMax') || '0.15'),
+      angleRange: parseFloat(searchParams.get('angleRange') || '2.5'),
+      innerAmplitude: parseFloat(searchParams.get('innerAmplitude') || '0.5'),
+      strokeWidth: parseFloat(searchParams.get('strokeWidth') || '0.75'),
+      opacityBase: parseFloat(searchParams.get('opacityBase') || '0.55'),
+      opacityVariation: parseFloat(searchParams.get('opacityVariation') || '0.2'),
+      lineRotationSpread: parseFloat(searchParams.get('lineRotationSpread') || '90'),
+      animationDuration: parseInt(searchParams.get('animationDuration') || '800'),
+      backgroundColor: searchParams.get('backgroundColor') || '#000000',
+      lineColor: searchParams.get('lineColor') || '#4980ff',
+    };
+  };
 
   // Calculate initial scale to fit screen properly
   const getInitialScale = () => {
@@ -43,6 +123,8 @@ const Index = () => {
     setSavedConfigs(keys);
   }, []);
 
+  const initialControls = getInitialControls();
+
   const randomize = () => {
     // Randomize shape-changing params less frequently to maintain animation
     const randomizeShape = Math.random() < 0.3; // 30% chance to change numPetals/numLayers
@@ -72,27 +154,39 @@ const Index = () => {
 
   const [controls, setControls] = useControls(() => ({
     randomize: button(randomize),
-    waviness: { value: Math.random() * 1.9 + 0.1, min: 0.1, max: 2, step: 0.1 },
-    staggeredRotation: { value: Math.random(), min: 0, max: 1, step: 0.05 },
-    numPetals: { value: Math.floor(Math.random() * 9) + 3, min: 3, max: 12, step: 1 },
-    numLayers: { value: Math.floor(Math.random() * 25) + 50, min: 50, max: 100, step: 5 },
-    innerRadiusMin: { value: Math.random() * 0.3, min: 0, max: 0.3, step: 0.02 },
-    innerRadiusMax: { value: Math.random() * 0.3, min: 0, max: 0.3, step: 0.02 },
-    angleRange: {
-      value: Math.random() * (Math.PI - Math.PI / 6) + Math.PI / 6,
-      min: Math.PI / 6,
-      max: Math.PI,
-      step: 0.05,
-    },
-    innerAmplitude: { value: Math.random(), min: 0, max: 1, step: 0.1 },
-    strokeWidth: { value: Math.random() * 0.5 + 0.5, min: 0.5, max: 1, step: 0.1 },
-    opacityBase: { value: Math.random() * 0.9 + 0.1, min: 0.1, max: 1, step: 0.05 },
-    opacityVariation: { value: Math.random() * 0.4, min: 0, max: 0.4, step: 0.05 },
-    lineRotationSpread: { value: Math.random() * 180, min: 0, max: 180, step: 5 },
-    animationDuration: { value: 800, min: 200, max: 3000, step: 100 },
-    backgroundColor: { value: "#000000" },
-    lineColor: { value: "#4980ff" },
+    waviness: { value: initialControls.waviness, ...controlConfigs.waviness },
+    staggeredRotation: { value: initialControls.staggeredRotation, ...controlConfigs.staggeredRotation },
+    numPetals: { value: initialControls.numPetals, ...controlConfigs.numPetals },
+    numLayers: { value: initialControls.numLayers, ...controlConfigs.numLayers },
+    innerRadiusMin: { value: initialControls.innerRadiusMin, ...controlConfigs.innerRadiusMin },
+    innerRadiusMax: { value: initialControls.innerRadiusMax, ...controlConfigs.innerRadiusMax },
+    angleRange: { value: initialControls.angleRange, ...controlConfigs.angleRange },
+    innerAmplitude: { value: initialControls.innerAmplitude, ...controlConfigs.innerAmplitude },
+    strokeWidth: { value: initialControls.strokeWidth, ...controlConfigs.strokeWidth },
+    opacityBase: { value: initialControls.opacityBase, ...controlConfigs.opacityBase },
+    opacityVariation: { value: initialControls.opacityVariation, ...controlConfigs.opacityVariation },
+    lineRotationSpread: { value: initialControls.lineRotationSpread, ...controlConfigs.lineRotationSpread },
+    animationDuration: { value: initialControls.animationDuration, ...controlConfigs.animationDuration },
+    backgroundColor: { value: initialControls.backgroundColor },
+    lineColor: { value: initialControls.lineColor },
   }));
+
+  // Update URL when controls change
+  useEffect(() => {
+    const newParams = new URLSearchParams();
+    urlKeys.forEach(key => {
+      const value = controls[key as keyof typeof controls];
+      if (typeof value === 'number') {
+        const config = controlConfigs[key as keyof typeof controlConfigs];
+        const roundedValue = roundToStep(value, config.step);
+        const formattedValue = formatNumber(roundedValue, config.step);
+        newParams.set(key, formattedValue.toString());
+      } else if (typeof value === 'string') {
+        newParams.set(key, value);
+      }
+    });
+    setSearchParams(newParams, { replace: true });
+  }, [controls, setSearchParams, urlKeys]);
 
   const saveConfig = () => {
     const timestamp = new Date()
